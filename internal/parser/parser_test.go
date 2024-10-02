@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/shubhexists/dns/models"
@@ -70,7 +71,7 @@ func TestParseDNSQuestion(t *testing.T) {
 		QClass: 1,
 	}
 
-	result := ParseDNSQuestion(data)
+	result, _, _ := ParseDNSQuestion(data)
 
 	fmt.Printf("%+v\n", result)
 	// Compare the QName byte slice using bytes.Equal
@@ -85,5 +86,78 @@ func TestParseDNSQuestion(t *testing.T) {
 
 	if result.QClass != expected.QClass {
 		t.Errorf("ParseDNSQuestion() QClass = %+v, want %+v", result.QClass, expected.QClass)
+	}
+}
+
+func TestParseDNSAnswer(t *testing.T) {
+	data := []byte{
+		0xdb, 0x42,
+		0x01,
+		0x00,
+		0x00, 0x01,
+		0x00, 0x00,
+		0x00, 0x00,
+		0x00, 0x00,
+		0x03, 0x77,
+		0x77, 0x77,
+		0x06, 0x67,
+		0x6f, 0x6f,
+		0x67, 0x6c,
+		0x65, 0x03,
+		0x63, 0x6f,
+		0x6d, 0x00,
+		0x00, 0x01,
+		0x00, 0x01,
+		0x03, 0x77,
+		0x77, 0x77,
+		0x06, 0x67,
+		0x6f, 0x6f,
+		0x67, 0x6c,
+		0x65, 0x03,
+		0x63, 0x6f,
+		0x6d, 0x00,
+		0x00, 0x01,
+		0x00, 0x01,
+		0x00, 0x00, 0x01, 0x2c,
+		0x00, 0x04,
+		0x8E, 0xFA, 0x48, 0x64,
+	}
+
+	expected := models.DNSAnswer{
+		Name:     []byte{0x03, 0x77, 0x77, 0x77, 0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03, 0x63, 0x6f, 0x6d, 0x00},
+		Type:     1,
+		Class:    1,
+		TTL:      300,
+		RDLENGTH: 4,
+		RDATA:    []byte{0x8E, 0xFA, 0x48, 0x64},
+	}
+
+	result := ParseDNSAnswer(data)
+	fmt.Printf("%+v\n", result)
+
+	if !reflect.DeepEqual(result.Name, expected.Name) {
+		t.Errorf("Name mismatch. Got: %+v, Want: %+v", result.Name, expected.Name)
+	}
+
+	// Check other fields
+	if result.Type != expected.Type {
+		t.Errorf("Type mismatch. Got: %d, Want: %d", result.Type, expected.Type)
+	}
+
+	if result.Class != expected.Class {
+		t.Errorf("Class mismatch. Got: %d, Want: %d", result.Class, expected.Class)
+	}
+
+	if result.TTL != expected.TTL {
+		t.Errorf("TTL mismatch. Got: %d, Want: %d", result.TTL, expected.TTL)
+	}
+
+	if result.RDLENGTH != expected.RDLENGTH {
+		t.Errorf("RDLENGTH mismatch. Got: %d, Want: %d", result.RDLENGTH, expected.RDLENGTH)
+	}
+
+	// Check RDATA field
+	if !reflect.DeepEqual(result.RDATA, expected.RDATA) {
+		t.Errorf("RDATA mismatch. Got: %+v, Want: %+v", result.RDATA, expected.RDATA)
 	}
 }

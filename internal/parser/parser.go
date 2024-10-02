@@ -62,7 +62,7 @@ func ParseDNSHeader(data []byte) models.DNSHeader {
 	}
 }
 
-func ParseDNSQuestion(data []byte) models.DNSQuestion {
+func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
 	i := 13
 	for data[i-1] != 0x00 {
 		i++
@@ -76,5 +76,26 @@ func ParseDNSQuestion(data []byte) models.DNSQuestion {
 		QName:  qname,
 		QType:  qtype,
 		QClass: qclass,
+	}, i + 4, i - 12
+}
+
+func ParseDNSAnswer(data []byte) models.DNSAnswer {
+	question, i, len := ParseDNSQuestion(data)
+
+	name := question.QName
+	index := i + len
+	record_type := binary.BigEndian.Uint16(data[index : index+2])
+	class := binary.BigEndian.Uint16(data[index+2 : index+4])
+	ttl := binary.BigEndian.Uint32(data[index+4 : index+8])
+	rdlength := binary.BigEndian.Uint16(data[index+8 : index+10])
+	rddata := data[index+10 : index+10+int(rdlength)]
+
+	return models.DNSAnswer{
+		Name:     name,
+		Type:     record_type,
+		Class:    class,
+		TTL:      ttl,
+		RDLENGTH: rdlength,
+		RDATA:    rddata,
 	}
 }
