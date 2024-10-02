@@ -61,3 +61,20 @@ func ParseDNSHeader(data []byte) models.DNSHeader {
 		ARCount:  arcount,
 	}
 }
+
+func ParseDNSQuestion(data []byte) models.DNSQuestion {
+	i := 13
+	for data[i-1] != 0x00 {
+		i++
+	}
+
+	qname := data[12:i]
+	qtype := binary.BigEndian.Uint16(data[i : i+2])
+	qclass := binary.BigEndian.Uint16(data[i+2 : i+4])
+
+	return models.DNSQuestion{
+		QName:  qname,
+		QType:  qtype,
+		QClass: qclass,
+	}
+}
