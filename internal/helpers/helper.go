@@ -1,5 +1,6 @@
 package helpers
 
+// helper function to convert array of bytes to string
 func ByteToString(data []byte) string {
 	s := ""
 
@@ -9,6 +10,7 @@ func ByteToString(data []byte) string {
 	return s
 }
 
+// array of function to convert array of bytes to int
 func ByteToInt(data []byte) []int {
 	i := []int{}
 	for _, b := range data {
