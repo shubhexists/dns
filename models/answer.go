@@ -1,10 +1,10 @@
 package models
 
 type DNSAnswer struct {
-	Name     []byte
+	Name     []string
 	Type     uint16
 	Class    uint16
 	TTL      uint32
 	RDLENGTH uint16
-	RDATA    []byte
+	RDATA    []int
 }

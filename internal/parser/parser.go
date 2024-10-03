@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/binary"
 
+	"github.com/shubhexists/dns/internal/helpers"
 	"github.com/shubhexists/dns/models"
 )
 
@@ -63,12 +64,21 @@ func ParseDNSHeader(data []byte) models.DNSHeader {
 }
 
 func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
-	i := 13
-	for data[i-1] != 0x00 {
+	i := 12
+	qnamebyte := [][]byte{}
+	for data[i] != 0x00 {
+		skip := int(data[i])
 		i++
+		qnamebyte = append(qnamebyte, data[i:i+skip])
+		i = i + skip
+	}
+	i++
+
+	var qname []string
+	for _, b := range qnamebyte {
+		qname = append(qname, helpers.ByteToString(b))
 	}
 
-	qname := data[12:i]
 	qtype := binary.BigEndian.Uint16(data[i : i+2])
 	qclass := binary.BigEndian.Uint16(data[i+2 : i+4])
 
@@ -96,6 +106,6 @@ func ParseDNSAnswer(data []byte) models.DNSAnswer {
 		Class:    class,
 		TTL:      ttl,
 		RDLENGTH: rdlength,
-		RDATA:    rddata,
+		RDATA:    helpers.ByteToInt(rddata),
 	}
 }

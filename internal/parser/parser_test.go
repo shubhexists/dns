@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
@@ -66,7 +65,7 @@ func TestParseDNSQuestion(t *testing.T) {
 	}
 
 	expected := models.DNSQuestion{
-		QName:  []byte{0x03, 0x77, 0x77, 0x77, 0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03, 0x63, 0x6f, 0x6d, 0x00},
+		QName:  []string{"www", "google", "com"},
 		QType:  1,
 		QClass: 1,
 	}
@@ -75,7 +74,7 @@ func TestParseDNSQuestion(t *testing.T) {
 
 	fmt.Printf("%+v\n", result)
 	// Compare the QName byte slice using bytes.Equal
-	if !bytes.Equal(result.QName, expected.QName) {
+	if !reflect.DeepEqual(result.QName, expected.QName) {
 		t.Errorf("ParseDNSQuestion() QName = %+v, want %+v", result.QName, expected.QName)
 	}
 
@@ -124,12 +123,12 @@ func TestParseDNSAnswer(t *testing.T) {
 	}
 
 	expected := models.DNSAnswer{
-		Name:     []byte{0x03, 0x77, 0x77, 0x77, 0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03, 0x63, 0x6f, 0x6d, 0x00},
+		Name:     []string{"www", "google", "com"},
 		Type:     1,
 		Class:    1,
 		TTL:      300,
 		RDLENGTH: 4,
-		RDATA:    []byte{0x8E, 0xFA, 0x48, 0x64},
+		RDATA:    []int{142, 250, 72, 100},
 	}
 
 	result := ParseDNSAnswer(data)
