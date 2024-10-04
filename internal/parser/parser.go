@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/binary"
 
+	"github.com/shubhexists/dns/internal/helpers"
 	"github.com/shubhexists/dns/models"
 )
 
@@ -59,5 +60,65 @@ func ParseDNSHeader(data []byte) models.DNSHeader {
 		ANCount:  ancount,
 		NSCount:  nscount,
 		ARCount:  arcount,
+	}
+}
+
+func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
+	//Gathering bytes to form a string afterwards according to lenght of the label
+	//Skip is the label
+	i := 12
+	qnamebyte := [][]byte{}
+	for data[i] != 0x00 {
+		skip := int(data[i])
+		i++
+		qnamebyte = append(qnamebyte, data[i:i+skip])
+		i = i + skip
+	}
+	i++
+
+	//Now I have array of []byte according to label, I convert it into string array
+	var qname []string
+	for _, b := range qnamebyte {
+		qname = append(qname, helpers.ByteToString(b))
+	}
+
+	qtype := binary.BigEndian.Uint16(data[i : i+2])
+	qclass := binary.BigEndian.Uint16(data[i+2 : i+4])
+
+	//Return the DNSQuestion, index after the question ends in data
+	//Also returning the lenght of the QName
+	return models.DNSQuestion{
+		QName:  qname,
+		QType:  qtype,
+		QClass: qclass,
+	}, i + 4, i - 12
+}
+
+func ParseDNSAnswer(data []byte) models.DNSAnswer {
+	question, i, len := ParseDNSQuestion(data)
+
+	//Since answer would also contain the QName, I call the ParseDNSQuestion to get it
+	//and get the index after the DNSQuestion ends
+	name := question.QName
+	//Skip the Question Name in Answer
+	index := i + len
+	//Type is of 2 bytes
+	record_type := binary.BigEndian.Uint16(data[index : index+2])
+	//Class is of 2 bytes
+	class := binary.BigEndian.Uint16(data[index+2 : index+4])
+	//TTL is of 4 bytes
+	ttl := binary.BigEndian.Uint32(data[index+4 : index+8])
+	//RDLENGHT is of 2 bytes
+	rdlength := binary.BigEndian.Uint16(data[index+8 : index+10])
+	//RDATA is of RDLENGHT bytes
+	rddata := data[index+10 : index+10+int(rdlength)]
+
+	return models.DNSAnswer{
+		Name:     name,
+		Type:     record_type,
+		Class:    class,
+		TTL:      ttl,
+		RDLENGTH: rdlength,
+		RDATA:    helpers.ByteToInt(rddata),
 	}
 }
