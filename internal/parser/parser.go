@@ -64,7 +64,7 @@ func ParseDNSHeader(data []byte) models.DNSHeader {
 }
 
 func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
-	//Gathering bytes to form a string afterwards according to lenght of the label
+	//Gathering bytes to form a string afterwards according to length of the label
 	//Skip is the label
 	i := 12
 	qnamebyte := [][]byte{}
@@ -86,7 +86,7 @@ func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
 	qclass := binary.BigEndian.Uint16(data[i+2 : i+4])
 
 	//Return the DNSQuestion, index after the question ends in data
-	//Also returning the lenght of the QName
+	//Also returning the length of the QName
 	return models.DNSQuestion{
 		QName:  qname,
 		QType:  qtype,
