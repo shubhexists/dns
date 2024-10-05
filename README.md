@@ -1,7 +1,20 @@
 # dns
 
-Step 1 - 
-Write a header parser
+Set up a sql Server
 
-Step 2 -
-Write a body parser 
+Setup REST Routes for data in SQL server
+
+Set up Dice DB
+
+According to the TTL of a website, when someone calls it, we need to cache it
+
+Handling of different type -
+
+let's say, if it's A -> send directly
+If CName -> recursively query their NS till we find a A record
+
+complete logic in helpers/build_response.go
+
+implement a good logging. Till then we'll use default package only
+
+Seems like all :)

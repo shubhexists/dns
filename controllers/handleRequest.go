@@ -1,4 +1,4 @@
-package controller
+package controllers
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 	"github.com/shubhexists/dns/internal/parser"
 )
 
-func HandleRequest(conn *net.UDPConn) {
+func HandleDNSRequest(conn *net.UDPConn) {
 	buffer := make([]byte, 512)
 	n, addr, err := conn.ReadFromUDP(buffer)
 	if err != nil {
