@@ -3,22 +3,21 @@ package server
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shubhexists/dns/controllers"
 )
 
 // This is the start of HTTP Server that will expose out DB CRUD Operations
 func StartHTTPServer() {
 	router := gin.Default()
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
+	router.GET("/getRecords", controllers.GetRecord)
+	router.POST("/createRecords", controllers.CreateRecord)
+	router.PUT("/updateRecord", controllers.UpdateRecord)
+	router.DELETE("/deleteRecord", controllers.DeleteRecord)
+	
 	// PORT Variable
 	port := os.Getenv("PORT")
 	if port == "" {
