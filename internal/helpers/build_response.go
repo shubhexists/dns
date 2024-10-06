@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"encoding/binary"
+	"strings"
 
+	"github.com/shubhexists/dns/database"
 	"github.com/shubhexists/dns/models"
 )
 
@@ -12,9 +14,9 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 	offset := 0
 	binary.BigEndian.PutUint16(response[offset:], header.PacketID)
 	offset += 2
-    
+
 	//-------------------------------------------------------------------------------------------------
- 	
+
 	// QR | Opcode | AA | TC | RD
 	// NOTE - AA should always be ) for the query. We'll check for that domain on our DB and check if we have it and set AA to 1
 	// TO SEE - How to handle truncation
@@ -23,7 +25,7 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 
 	// Bitwise OR
 	// RA | Z | RCode
-	// To see - DO We support Recursion lol? 
+	// To see - DO We support Recursion lol?
 	flags |= uint16(header.RA)<<7 | uint16(header.Z)<<4 | uint16(header.RCode)
 	binary.BigEndian.PutUint16(response[offset:], flags)
 	offset += 2
@@ -36,7 +38,7 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 	// probably there might be NS Records
 	binary.BigEndian.PutUint16(response[offset:], header.NSCount)
 	offset += 2
-	// NOT SURE WHAT TO SET HERE 
+	// NOT SURE WHAT TO SET HERE
 	binary.BigEndian.PutUint16(response[offset:], header.ARCount)
 	offset += 2
 
@@ -60,7 +62,22 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 
 	//--------------------------------------------------------------------------------------------------//
 	//                                          ANSWER SECTION                                          //
-    //--------------------------------------------------------------------------------------------------//
+	//--------------------------------------------------------------------------------------------------//
+
+	var name, baseURL string
+	if len(question.QName) > 2 {
+		name = question.QName[0]
+		baseURL = strings.Join(question.QName[1:], ".")
+	} else {
+		name = ""
+		baseURL = strings.Join(question.QName, ".")
+	}
+
+	var record []models.DNSRecords
+	if err := database.DB.Where("name = ? AND base_url = ?", name, baseURL).Find(&record).Error; err != nil {
+		// Figure out how to send errors :D
+	}
+
 	switch question.QType {
 	case models.QTYPE_A:
 
@@ -82,8 +99,8 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 
 	}
 
-	// Authority section 
-	
+	// Authority section
+
 	// Additional Section
 
 	return response
