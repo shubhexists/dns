@@ -21,3 +21,24 @@ Seems like all :)
 
 start docker by
 `docker compose --env-file .env up -d`
+
+---
+
+Things which are intentionally not implemented
+
+Obselete QTypes like
+QTYPE_MD = 3 // MD (Mail Destination, obsolete)
+QTYPE_MF = 4 // MF (Mail Forwarder, obsolete)
+QTYPE_MB = 7 // MB (Mailbox Domain Name, obsolete)
+QTYPE_MG = 8 // MG (Mail Group Member, obsolete)
+QTYPE_MR = 9 // MR (Mail Rename Domain Name, obsolete)
+
+coz why care handling if they aren't used :D
+
+---
+
+also, Class is just Internet class. No other classes of now
+
+
+changes to make in the last - 
+combine all the distributed Flags into one FLag in the Header struct
