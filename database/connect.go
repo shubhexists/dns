@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 func getDBURLFromEnv() (string, error) {
 	host := os.Getenv("DB_HOST")
 	if host == "" {
@@ -58,11 +60,11 @@ func ConnectToDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
 	log.Println("Connected to the database successfully")
-	return db, nil
+	return DB, nil
 }

@@ -18,3 +18,6 @@ complete logic in helpers/build_response.go
 implement a good logging. Till then we'll use default package only
 
 Seems like all :)
+
+start docker by
+`docker compose --env-file .env up -d`

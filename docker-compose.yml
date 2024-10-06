@@ -1,0 +1,25 @@
+version: '3'
+services:
+  dicedb:
+    image: dicedb/dicedb
+    ports:
+      - '7379:7379'
+      - '8082:8082'
+    container_name: dicedb
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - '${DB_PORT}:5432'
+    container_name: dns
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

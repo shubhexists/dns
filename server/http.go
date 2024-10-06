@@ -13,10 +13,15 @@ import (
 func StartHTTPServer() {
 	router := gin.Default()
 
-	router.GET("/getRecords", controllers.GetRecord)
-	router.POST("/createRecords", controllers.CreateRecord)
-	router.PUT("/updateRecord", controllers.UpdateRecord)
-	router.DELETE("/deleteRecord", controllers.DeleteRecord)
+	records := router.Group("/records")
+	{
+		records.GET("/getRecordById", controllers.GetRecordByID)
+		records.GET("/getRecordsByName", controllers.GetRecordsByName)
+		records.POST("/createRecords", controllers.CreateRecord)
+		records.DELETE("/deleteRecordByID", controllers.DeleteRecordByID)
+		records.DELETE("/deleteRecordsByName", controllers.DeleteRecordsByName)
+		records.PUT("/updateRecord", controllers.UpdateRecordByID)
+	}
 	
 	// PORT Variable
 	port := os.Getenv("PORT")
