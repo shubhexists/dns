@@ -17,15 +17,12 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	_, err = database.ConnectToDB()
-	if err != nil {
+	db, db_error := database.ConnectToDB()
+	if db_error != nil {
 		log.Fatal("Error connecting to database")
 	}
 
-	err = database.DB.AutoMigrate(&models.DNSRecords{})
-	if err != nil {
-		log.Fatal("Error migrating to new schema")
-	}
+	db.AutoMigrate(&models.DNSRecords{})
 }
 
 func main() {

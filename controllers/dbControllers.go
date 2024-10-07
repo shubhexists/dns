@@ -113,7 +113,7 @@ func DeleteRecordByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
 		return
 	}
-	
+
 	var dnsRecord models.DNSRecords
 	if err := database.DB.First(&dnsRecord, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
