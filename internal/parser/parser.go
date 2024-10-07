@@ -82,7 +82,7 @@ func ParseDNSQuestion(data []byte) (models.DNSQuestion, int, int) {
 		qname = append(qname, helpers.ByteToString(b))
 	}
 
-	qtype := binary.BigEndian.Uint16(data[i : i+2])
+	qtype := models.QType(binary.BigEndian.Uint16(data[i : i+2]))
 	qclass := binary.BigEndian.Uint16(data[i+2 : i+4])
 
 	//Return the DNSQuestion, index after the question ends in data
