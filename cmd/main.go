@@ -22,9 +22,24 @@ func init() {
 		log.Fatal("Error connecting to database")
 	}
 
-	err = database.DB.AutoMigrate(&models.DNSRecords{})
+	err = database.DB.AutoMigrate(&models.SOARecord{})
 	if err != nil {
-		log.Fatal("Error migrating to new schema")
+		log.Fatal("Error migrating SOARecord to new schema")
+	}
+
+	err = database.DB.AutoMigrate(&models.Nameserver{})
+	if err != nil {
+		log.Fatal("Error migrating Nameserver to new schema")
+	}
+
+	err = database.DB.AutoMigrate(&models.Domain{})
+	if err != nil {
+		log.Fatal("Error migrating Domain to new schema")
+	}
+
+	err = database.DB.AutoMigrate(&models.DNSRecord{})
+	if err != nil {
+		log.Fatal("Error migrating DNSRecord to new schema")
 	}
 }
 

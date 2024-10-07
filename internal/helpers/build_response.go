@@ -2,9 +2,7 @@ package helpers
 
 import (
 	"encoding/binary"
-	"strings"
 
-	"github.com/shubhexists/dns/database"
 	"github.com/shubhexists/dns/models"
 )
 
@@ -64,19 +62,19 @@ func BuildDNSResponse(header models.DNSHeader, question models.DNSQuestion) []by
 	//                                          ANSWER SECTION                                          //
 	//--------------------------------------------------------------------------------------------------//
 
-	var name, baseURL string
-	if len(question.QName) > 2 {
-		name = question.QName[0]
-		baseURL = strings.Join(question.QName[1:], ".")
-	} else {
-		name = ""
-		baseURL = strings.Join(question.QName, ".")
-	}
+	// var name, baseURL string
+	// if len(question.QName) > 2 {
+	// 	name = question.QName[0]
+	// 	baseURL = strings.Join(question.QName[1:], ".")
+	// } else {
+	// 	name = ""
+	// 	baseURL = strings.Join(question.QName, ".")
+	// }
 
-	var record []models.DNSRecords
-	if err := database.DB.Where("name = ? AND base_url = ?", name, baseURL).Find(&record).Error; err != nil {
-		// Figure out how to send errors :D
-	}
+	// var record []models.DNSRecords
+	// if err := database.DB.Where("name = ? AND base_url = ?", name, baseURL).Find(&record).Error; err != nil {
+	// 	// Figure out how to send errors :D
+	// }
 
 	switch question.QType {
 	case models.QTYPE_A:
