@@ -145,16 +145,16 @@ func CreateRecord(c *gin.Context) {
 // func DeleteRecordByID(c *gin.Context) {
 // 	id := c.Param("id")
 
-// 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
-// 		return
-// 	}
+	// if id == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
+	// 	return
+	// }
 
-// 	var dnsRecord models.DNSRecords
-// 	if err := database.DB.First(&dnsRecord, id).Error; err != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
-// 		return
-// 	}
+	// var dnsRecord models.DNSRecords
+	// if err := database.DB.First(&dnsRecord, id).Error; err != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+	// 	return
+	// }
 
 // 	if err := database.DB.Delete(&dnsRecord).Error; err != nil {
 // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete record"})
