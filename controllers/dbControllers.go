@@ -87,74 +87,116 @@ func CreateRecord(c *gin.Context) {
 // 	})
 // }
 
-// func UpdateRecordByID(c *gin.Context) {
-// 	id := c.Param("id")
+func UpdateRecordByID(c *gin.Context) {
+	domainId := c.Param("domainId")
 
-// 	var body struct {
-// 		Base string  `json:"base"`
-// 		Name string  `json:"name"`
-// 		Type string  `json:"type"`
-// 		TTL  *uint32 `json:"ttl"`
-// 		Data string  `json:"data"`
-// 	}
+	var body struct {
+		DomainID    uint   `json:"domain_id" binding:"required"`
+		RecordType  string `json:"record_type" binding:"required"`
+		RecordName  string `json:"record_name" binding:"required"`
+		RecordValue string `json:"record_value" binding:"required"`
+		TTL         int    `json:"ttl" binding:"required"`
+		Priority    *int   `json:"priority"`
+	}
 
-// 	if err := c.ShouldBindJSON(&body); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-// 		return
-// 	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
 
-// 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
-// 		return
-// 	}
+	if domainId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "DomainID Parameter is required"})
+		return
+	}
 
-// 	var dnsRecord models.DNSRecords
+	var dnsRecord models.DNSRecord
 
-// 	if err := database.DB.First(&dnsRecord, id).Error; err != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
-// 		return
-// 	}
+	if err := database.DB.First(&dnsRecord, "domain_id=?", domainId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+		return
+	}
 
-// 	if body.Name != "" {
-// 		dnsRecord.Name = body.Name
-// 	}
-// 	if body.Type != "" {
-// 		dnsRecord.Type = body.Type
-// 	}
-// 	if body.TTL != nil {
-// 		dnsRecord.TTL = *body.TTL
-// 	}
-// 	if body.Data != "" {
-// 		dnsRecord.Data = body.Data
-// 	}
-// 	if body.Base != "" {
-// 		dnsRecord.BaseURL = body.Base
-// 	}
+	if body.RecordType != "" {
+		dnsRecord.RecordType = body.RecordType
+	}
+	if body.RecordType != "" {
+		dnsRecord.RecordType = body.RecordType
+	}
+	if body.RecordValue != "" {
+		dnsRecord.RecordValue = body.RecordValue
+	}
+	if body.TTL != 0 {
+		dnsRecord.TTL = body.TTL
+	}
+	if body.Priority != nil {
+		dnsRecord.Priority = body.Priority
+	}
 
-// 	if err := database.DB.Save(&dnsRecord).Error; err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update record"})
-// 		return
-// 	}
+	if err := database.DB.Save(&dnsRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update record"})
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Record successfully updated",
-// 		"record":  dnsRecord,
-// 	})
-// }
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Record successfully updated",
+		"record":  dnsRecord,
+	})
+}
+
+func UpdateNameServerById(c *gin.Context) {
+	domainId := c.Param("domainId")
+
+	var body struct {
+		DomainID uint   `json:"domain_id" binding:"required"`
+		NSNAME   string `json:"nsname" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	if domainId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "DomainID Parameter is required"})
+		return
+	}
+
+	var nameserver models.Nameserver
+
+	if err := database.DB.First(&nameserver, "domain_id=?", domainId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+		return
+	}
+
+	if body.NSNAME != "" {
+		nameserver.NSName = body.NSNAME
+	}
+
+	if err := database.DB.Save(&nameserver).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update Name Server"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "Record successfully updated",
+		"NameServer": nameserver,
+	})
+
+}
 
 // func DeleteRecordByID(c *gin.Context) {
 // 	id := c.Param("id")
 
-	// if id == "" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
-	// 	return
-	// }
+// if id == "" {
+// 	c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
+// 	return
+// }
 
-	// var dnsRecord models.DNSRecords
-	// if err := database.DB.First(&dnsRecord, id).Error; err != nil {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
-	// 	return
-	// }
+// var dnsRecord models.DNSRecords
+// if err := database.DB.First(&dnsRecord, id).Error; err != nil {
+// 	c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
+// 	return
+// }
 
 // 	if err := database.DB.Delete(&dnsRecord).Error; err != nil {
 // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete record"})
