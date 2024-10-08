@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/shubhexists/dns/database"
+	"github.com/shubhexists/dns/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,10 +62,10 @@ func TestCreateRecord(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), "Record Successfully Created")
 
-		// var record models.DNSRecords
-		// err := tx.Where("name = ?", "test").First(&record).Error
-		// assert.NoError(t, err)
-		// assert.Equal(t, "test", record.Name)
+		var record models.DNSRecords
+		err := tx.Where("name = ?", "test").First(&record).Error
+		assert.NoError(t, err)
+		assert.Equal(t, "test", record.Name)
 	})
 
 	t.Run("Bad Input", func(t *testing.T) {
@@ -121,27 +123,29 @@ func TestDeleteRecordByID(t *testing.T) {
 
 	t.Run("Success Record Deletion", func(t *testing.T) {
 		// Insert a test record
-		// testRecord := models.DNSRecords{
-		// 	BaseURL: "example.com", Name: "test", Type: "A", TTL: 3600, Data: "192.0.2.1",
-		// }
-		// tx.Create(&testRecord)
+		testRecord := models.DNSRecords{
+			BaseURL: "example.com", Name: "test", Type: "A", TTL: 3600, Data: "192.0.2.1",
+		}
+		tx.Create(&testRecord)
 
-		// req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID/"+strconv.FormatUint(uint64(testRecord.ID), 10), nil)
+		req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID
+		/"+strconv.FormatUint(uint64(testRecord.ID), 10), nil)
 
 		w := httptest.NewRecorder()
-		// r.ServeHTTP(w, req)
+		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), "Record successfully deleted")
 
-		// var deletedRecord models.DNSRecords
-		// err := tx.First(&deletedRecord, testRecord.ID).Error
-		// assert.Error(t, err) // The record should not be found after deletion
+		var deletedRecord models.DNSRecords
+		err := tx.First(&deletedRecord, testRecord.ID).Error
+		assert.Error(t, err) // The record should not be found after deletion
 	})
 
 	t.Run("Record Not Found", func(t *testing.T) {
 		// Non-existent ID
-		req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID/999999", nil)
+		req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID
+		/999999", nil)
 
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
@@ -151,7 +155,8 @@ func TestDeleteRecordByID(t *testing.T) {
 	})
 
 	t.Run("Missing ID Parameter", func(t *testing.T) {
-		req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID", nil)
+		req, _ := http.NewRequest(http.MethodDelete, "/deleteRecordByID
+		", nil)
 
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)

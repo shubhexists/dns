@@ -143,118 +143,26 @@ func UpdateRecordByID(c *gin.Context) {
 	})
 }
 
-func UpdateNameServerById(c *gin.Context) {
-	domainId := c.Param("domainId")
+func DeleteDomainByID(c *gin.Context) {
+	id := c.Param("id")
 
-	var body struct {
-		DomainID uint   `json:"domain_id" binding:"required"`
-		NSNAME   string `json:"nsname" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
 		return
 	}
 
-	if domainId == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "DomainID Parameter is required"})
-		return
-	}
-
-	var nameserver models.Nameserver
-
-	if err := database.DB.First(&nameserver, "domain_id=?", domainId).Error; err != nil {
+	var domain models.Domain
+	if err := database.DB.First(&domain, "id=?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
 		return
 	}
 
-	if body.NSNAME != "" {
-		nameserver.NSName = body.NSNAME
-	}
-
-	if err := database.DB.Save(&nameserver).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update Name Server"})
+	if err := database.DB.Delete(&domain).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete record"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":    "Record successfully updated",
-		"NameServer": nameserver,
+		"message": "Domain successfully deleted",
 	})
-
 }
-
-// func DeleteRecordByID(c *gin.Context) {
-// 	id := c.Param("id")
-
-// if id == "" {
-// 	c.JSON(http.StatusBadRequest, gin.H{"error": "ID Parameter is required"})
-// 	return
-// }
-
-// var dnsRecord models.DNSRecords
-// if err := database.DB.First(&dnsRecord, id).Error; err != nil {
-// 	c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
-// 	return
-// }
-
-// 	if err := database.DB.Delete(&dnsRecord).Error; err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete record"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Record successfully deleted",
-// 	})
-// }
-
-// func DeleteRecordsByName(c *gin.Context) {
-// 	name := c.Param("name")
-
-// 	if name == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Name parameter is Required"})
-// 		return
-// 	}
-
-// 	if err := database.DB.Where("Name = ?", name).Delete(&models.DNSRecords{}).Error; err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete records"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Records successfully deleted",
-// 	})
-// }
-
-// func GetRecordByID(c *gin.Context) {
-// 	id := c.Param("id")
-
-// 	var dnsRecord models.DNSRecords
-// 	if err := database.DB.First(&dnsRecord, id).Error; err != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"record": dnsRecord,
-// 	})
-// }
-
-// func GetRecordsByName(c *gin.Context) {
-// 	name := c.Param("name")
-
-// 	if name == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Name parameter is required"})
-// 		return
-// 	}
-
-// 	var dnsRecords []models.DNSRecords
-// 	if err := database.DB.Where("name = ?", name).Find(&dnsRecords).Error; err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch records"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"records": dnsRecords,
-// 	})
-// }
