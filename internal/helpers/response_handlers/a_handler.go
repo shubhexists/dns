@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/shubhexists/dns/cache"
+	"github.com/shubhexists/dns/database"
+	"github.com/shubhexists/dns/models"
 )
 
 type data struct {
@@ -25,7 +27,33 @@ func AHandler(Qname string) (uint32, uint32, uint32) {
 	}
 
 	if res == nil {
-		//logic to fetch from DB and cache it in diceDB
+		var domain models.Domain
+		if err := database.DB.Where("domain_name = ?", Qname).First(&domain).Error; err != nil {
+			fmt.Println("Domain not found:", err)
+			return 0, 0, 0
+		}
+
+		var dnsRecord models.DNSRecord
+		if err := database.DB.Where("domain_id = ? AND record_type = ?", domain.ID, "A").First(&dnsRecord).Error; err != nil {
+			fmt.Println("A record not found:", err)
+			return 0, 0, 0
+		}
+
+		cacheData := data{
+			Key:   Qname,
+			Value: dnsRecord.RecordValue,
+			TTL:   strconv.Itoa(dnsRecord.TTL),
+		}
+
+		cacheBytes, error := json.Marshal(cacheData)
+		if error != nil {
+			fmt.Println("Unable to marshal cache data: ", error)
+			return 0, 0, 0
+		}
+		
+		diceDB.Set(Qname, string(cacheBytes))
+
+		res = cacheBytes
 	}
 
 	var resData data
@@ -53,6 +81,7 @@ func AHandler(Qname string) (uint32, uint32, uint32) {
 		return 0, 0, 0
 	}
 
+	// Convert the IP to a 32-bit integer format
 	ipBytes := uint32(ip[0])<<24 | uint32(ip[1])<<16 | uint32(ip[2])<<8 | uint32(ip[3])
 
 	return uint32(ttl), 0x0004, ipBytes
