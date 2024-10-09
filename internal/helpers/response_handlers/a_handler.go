@@ -17,7 +17,7 @@ type data struct {
 	TTL   string `json:"ttl"`
 }
 
-func AHandler(Qname string) (uint32, uint32, uint32) {
+func AHandler(Qname string) (uint32, uint16, uint32) {
 	diceDB := cache.NewAPIClient()
 
 	if Qname == "" {
@@ -86,7 +86,6 @@ func AHandler(Qname string) (uint32, uint32, uint32) {
 		return 0, 0, 0
 	}
 
-	// Convert the IP to a 32-bit integer format
 	ipBytes := uint32(ip[0])<<24 | uint32(ip[1])<<16 | uint32(ip[2])<<8 | uint32(ip[3])
 
 	return uint32(ttl), 0x0004, ipBytes
