@@ -8,16 +8,13 @@ import (
 	"github.com/shubhexists/dns/models"
 )
 
+// We will NOT have a domain ID when calling this
 func CreateDomain(c *gin.Context) {
 	type CreateDomainRequest struct {
 		DomainName string `json:"domain_name" binding:"required"`
 		ParentID   *uint  `json:"parent_id"`
-		IsActive   bool   `json:"is_active"`
 		IP         string `json:"ip" binding:"required"`          // IP address for the @ A record
 		AdminEmail string `json:"admin_email" binding:"required"` // Admin email for SOA record
-		Serial     int    `json:"serial" binding:"required"`      // Serial number for SOA record
-		Refresh    int    `json:"refresh" binding:"required"`     // Refresh time for SOA record
-		Retry      int    `json:"retry" binding:"required"`       // Retry time for SOA record
 		Expire     int    `json:"expire" binding:"required"`      // Expiration time for SOA record
 		TTL        int    `json:"ttl" binding:"required"`         // TTL for DNS records
 	}
@@ -31,16 +28,79 @@ func CreateDomain(c *gin.Context) {
 	domain := models.Domain{
 		DomainName: req.DomainName,
 		ParentID:   req.ParentID,
-		IsActive:   req.IsActive,
+		IsActive:   true,
 	}
 
 	if err := database.DB.Create(&domain).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create domain"})
 		return
 	}
+
+	// Making a root record for the new domain
+	rootRecord := models.DNSRecord{
+		DomainID:    domain.ID,
+		RecordType:  "A",
+		RecordName:  "@",
+		TTL:         req.TTL,
+		RecordValue: req.IP,
+		Priority:    nil,
+	}
+
+	if err := database.DB.Create(&rootRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create A record for root domain"})
+		return
+	}
+
+	// CNAME www to the root domain name
+	wwwRecord := models.DNSRecord{
+		DomainID:   domain.ID,
+		RecordType: "CNAME",
+		RecordName: "www",
+		TTL:        req.TTL,
+		// Confirm this
+		RecordValue: domain.DomainName,
+		Priority:    nil,
+	}
+
+	if err := database.DB.Create(&wwwRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create cname for WWW"})
+		return
+	}
+
+	// Create a NS Record and SOA record
+
+	soaRecord := models.SOARecord{
+		DomainID: domain.ID,
+		// Replace this when deplyed or take from env
+		PrimaryNS: "",
+		// shubh622005@gmail.com should be written as shubh622005.gmail.com
+		// NO "@"
+		AdminEmail: "",
+		TTL:        req.TTL,
+	}
+
+	if err := database.DB.Create(&soaRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create SOA record"})
+		return
+	}
+
+	// We will only support one NS server
+
+	nsServer := models.Nameserver{
+		DomainID: domain.ID,
+		// Replace this when deplyed or take from env
+		NSName: "",
+	}
+
+	if err := database.DB.Create(&nsServer).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create NS Record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Domain successfully created"})
 }
 
-// // Only IN CLass Allowed ( I don't know how to handle rest as of now )
+// We will have a DomainID for sure while calling this
 func CreateRecord(c *gin.Context) {
 	type CreateRecordRequest struct {
 		DomainID    uint   `json:"domain_id" binding:"required"`
@@ -53,39 +113,24 @@ func CreateRecord(c *gin.Context) {
 
 	var req CreateRecordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Input"})
 		return
 	}
 
+	newRecord := models.DNSRecord{
+		DomainID:   req.DomainID,
+		RecordType: req.RecordType,
+		TTL:        req.TTL,
+		Priority:   req.Priority,
+	}
+
+	if err := database.DB.Create(&newRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create DNS Record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "Records created successfully"})
 }
-
-// 	var existingRecord models.DNSRecords
-// 	if err := database.DB.Where("name = ? AND data = ?", body.Name, body.Data).First(&existingRecord).Error; err == nil {
-// 		c.JSON(http.StatusConflict, gin.H{"error": "Conflicting Records"})
-// 		return
-// 	}
-
-// 	dnsRecord := models.DNSRecords{
-// 		Name:    body.Name,
-// 		Type:    body.Type,
-// 		TTL:     body.TTL,
-// 		Data:    body.Data,
-// 		BaseURL: body.Base,
-// 		Class:   "IN",
-// 	}
-
-// 	result := database.DB.Create(&dnsRecord)
-
-// 	if result.Error != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create record"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Record Successfully Created",
-// 		"record":  dnsRecord,
-// 	})
-// }
 
 func UpdateRecordByID(c *gin.Context) {
 	domainId := c.Param("domainId")
