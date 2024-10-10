@@ -14,7 +14,6 @@ type Domain struct {
 
 type SOARecord struct {
 	gorm.Model
-	DomainID   uint   `gorm:"not null;constraint:OnDelete:CASCADE"`
 	PrimaryNS  string `gorm:"size:255;not null"`
 	AdminEmail string `gorm:"size:255;not null"`
 	Serial     int    `gorm:"not null"`
@@ -22,7 +21,6 @@ type SOARecord struct {
 	Retry      int    `gorm:"default:7200"`
 	Expire     int    `gorm:"default:3600000"`
 	TTL        int    `gorm:"default:86400"`
-	Domain     Domain `gorm:"foreignKey:DomainID"`
 }
 
 type DNSRecord struct {

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/shubhexists/dns/controllers"
 	"github.com/shubhexists/dns/database"
 	. "github.com/shubhexists/dns/internal/logger"
 	"github.com/shubhexists/dns/models"
@@ -35,6 +38,27 @@ func init() {
 	err = database.DB.AutoMigrate(&models.DNSRecord{})
 	if err != nil {
 		Log.Fatal("Error migrating DNSRecord to new schema")
+	}
+
+	sno, err := controllers.CheckForSOA()
+	Log.Println("SNO: ", sno)
+
+	if err != nil {
+		soa := models.SOARecord{
+			PrimaryNS:  "ns1.shubh.sh",
+			AdminEmail: strings.Replace("shubh622005@gmail.com", "@", ".", 1),
+			Serial:     sno,
+			Refresh:    86400,
+			Retry:      7200,
+			Expire:     3600,
+			TTL:        3600,
+		}
+
+		if err := database.DB.Create(&soa).Error; err != nil {
+			Log.Fatal("Error creating SOA Records")
+		}
+
+		Log.Println("SOA records created successfully")
 	}
 }
 

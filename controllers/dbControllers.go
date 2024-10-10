@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shubhexists/dns/database"
@@ -18,8 +17,6 @@ func CreateDomain(c *gin.Context) {
 		DomainName string `json:"domain_name" binding:"required"`
 		ParentID   *uint  `json:"parent_id"`
 		IP         string `json:"ip" binding:"required"`
-		AdminEmail string `json:"admin_email" binding:"required"`
-		Expire     int    `json:"expire" binding:"required"`
 		TTL        int    `json:"ttl" binding:"required"`
 	}
 
@@ -62,32 +59,13 @@ func CreateDomain(c *gin.Context) {
 			RecordName: "@",
 			TTL:        3600,
 			// TODO: Replace when deployed
-			RecordValue: "",
+			RecordValue: "ns1.shubh.sh",
 		},
 	}
 
 	if err := database.DB.Create(&records).Error; err != nil {
 		Log.Errorf("Could not create DNS records: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create DNS records"})
-		return
-	}
-
-	soaRecord := models.SOARecord{
-		DomainID: domain.ID,
-		// TODO: Replace when deployed
-		PrimaryNS:  "",
-		AdminEmail: strings.Replace(req.AdminEmail, "@", ".", 1),
-		// WHAT IS SERIAL?
-		Serial:  1,
-		Refresh: 86400,
-		Retry:   7200,
-		Expire:  req.Expire,
-		TTL:     req.TTL,
-	}
-
-	if err := database.DB.Create(&soaRecord).Error; err != nil {
-		Log.Errorf("Could not create SOA record: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create SOA record"})
 		return
 	}
 

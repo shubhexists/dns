@@ -2,9 +2,25 @@ package helpers
 
 import (
 	"encoding/binary"
+	"fmt"
+	"time"
 
 	"github.com/shubhexists/dns/models"
 )
+
+func GenerateSOASerial(revision int) (string, error) {
+	if revision < 1 || revision > 99 {
+		return "", fmt.Errorf("invalid revision number: must be between 01 and 99")
+	}
+
+	currentTime := time.Now()
+	datePart := currentTime.Format("20060102")
+
+	revisionPart := fmt.Sprintf("%02d", revision)
+
+	serial := datePart + revisionPart
+	return serial, nil
+}
 
 func writeResourceRecord(response []byte, offset int, question models.DNSQuestion, qType models.QType, ttl uint32, rdLength uint16) int {
 	binary.BigEndian.PutUint16(response[offset:], PointerCompression)
