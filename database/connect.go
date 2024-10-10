@@ -3,12 +3,14 @@ package database
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
+	. "github.com/shubhexists/dns/internal/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+// ADD DEBUG LOGS
 
 var DB *gorm.DB
 
@@ -65,6 +67,6 @@ func ConnectToDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("Connected to the database successfully")
+	Log.Println("Connected to the database successfully")
 	return DB, nil
 }

@@ -1,11 +1,10 @@
 package server
 
 import (
-	"fmt"
-	"log"
 	"net"
 
 	"github.com/shubhexists/dns/controllers"
+	. "github.com/shubhexists/dns/internal/logger"
 )
 
 // DNS Server start
@@ -17,11 +16,11 @@ func StartDNSServer(done chan bool) {
 
 	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		log.Fatalf("Failed to listen on UDP port 5350: %v", err)
+		Log.Fatalf("Failed to listen on UDP port 5350: %v", err)
 	}
 	defer conn.Close()
 
-	fmt.Println("DNS server is running on port 5350...")
+	Log.Println("DNS server is running on port 5350...")
 	done <- true
 
 	for {

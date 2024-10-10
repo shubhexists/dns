@@ -8,6 +8,8 @@ import (
 	"github.com/shubhexists/dns/models"
 )
 
+// ADD LOGGER HERE
+
 // We will NOT have a domain ID when calling this
 func CreateDomain(c *gin.Context) {
 	type CreateDomainRequest struct {

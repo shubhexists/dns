@@ -2,12 +2,12 @@ package responsehandlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/shubhexists/dns/cache"
 	"github.com/shubhexists/dns/database"
+	. "github.com/shubhexists/dns/internal/logger"
 	"github.com/shubhexists/dns/models"
 )
 
@@ -16,20 +16,20 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 
 	res, err := diceDB.Get(Qname)
 	if err != nil {
-		fmt.Println("Error", err)
+		Log.Errorln("Error", err)
 		return 0, 0, nil
 	}
 
 	if res == nil {
 		var domain models.Domain
 		if err := database.DB.Where("domain_name = ?", Qname).First(&domain).Error; err != nil {
-			fmt.Println("Domain not found:", err)
+			Log.Errorln("Domain not found:", err)
 			return 0, 0, nil
 		}
 
 		var dnsRecord models.DNSRecord
 		if err := database.DB.Where("domain_id = ? AND record_type = ?", domain.ID, "NS").First(&dnsRecord).Error; err != nil {
-			fmt.Println("A record not found:", err)
+			Log.Errorln("A record not found:", err)
 			return 0, 0, nil
 		}
 
@@ -41,7 +41,7 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 
 		cacheBytes, error := json.Marshal(cacheData)
 		if error != nil {
-			fmt.Println("Unable to marshal cache data: ", error)
+			Log.Errorln("Unable to marshal cache data: ", error)
 			return 0, 0, nil
 		}
 
@@ -53,13 +53,13 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 	var resData data
 
 	if err := json.Unmarshal(res, &resData); err != nil {
-		fmt.Println("Error parsing JSON:", err)
+		Log.Errorln("Error parsing JSON:", err)
 		return 0, 0, nil
 	}
 
 	ttl, err := strconv.ParseUint(resData.TTL, 10, 32)
 	if err != nil {
-		fmt.Println("Error converting to uint32:", err)
+		Log.Errorln("Error converting to uint32:", err)
 		return 0, 0, nil
 	}
 

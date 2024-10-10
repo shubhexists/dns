@@ -1,45 +1,45 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/shubhexists/dns/database"
+	. "github.com/shubhexists/dns/internal/logger"
 	"github.com/shubhexists/dns/models"
 	"github.com/shubhexists/dns/server"
 )
 
 func init() {
+	InitializeLogger()
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		Log.Fatal("Error loading .env file")
 	}
 
 	_, err = database.ConnectToDB()
 	if err != nil {
-		log.Fatal("Error connecting to database")
+		Log.Fatal("Error connecting to database")
 	}
 
 	err = database.DB.AutoMigrate(&models.SOARecord{})
 	if err != nil {
-		log.Fatal("Error migrating SOARecord to new schema")
+		Log.Fatal("Error migrating SOARecord to new schema")
 	}
 
 	err = database.DB.AutoMigrate(&models.Nameserver{})
 	if err != nil {
-		log.Fatal("Error migrating Nameserver to new schema")
+		Log.Fatal("Error migrating Nameserver to new schema")
 	}
 
 	err = database.DB.AutoMigrate(&models.Domain{})
 	if err != nil {
-		log.Fatal("Error migrating Domain to new schema")
+		Log.Fatal("Error migrating Domain to new schema")
 	}
 
 	err = database.DB.AutoMigrate(&models.DNSRecord{})
 	if err != nil {
-		log.Fatal("Error migrating DNSRecord to new schema")
+		Log.Fatal("Error migrating DNSRecord to new schema")
 	}
 }
 
