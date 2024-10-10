@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shubhexists/dns/controllers"
 	. "github.com/shubhexists/dns/internal/logger"
 )
 
@@ -11,15 +12,15 @@ import (
 func StartHTTPServer() {
 	router := gin.Default()
 
-	// records := router.Group("/records")
-	// {
-	// records.GET("/getRecordById", controllers.GetRecordByID)
-	// records.GET("/getRecordsByName", controllers.GetRecordsByName)
-	// records.POST("/createRecords", controllers.CreateRecord)
-	// records.DELETE("/deleteRecordByID", controllers.DeleteRecordByID)
-	// records.DELETE("/deleteRecordsByName", controllers.DeleteRecordsByName)
-	// records.PUT("/updateRecord", controllers.UpdateRecordByID)
-	// }
+	records := router.Group("/records")
+	{
+		records.GET("/getRecords", controllers.GetRecordsByDomainID)
+		records.POST("/createDomain", controllers.CreateDomain)
+		records.POST("/createRecords", controllers.CreateRecord)
+		records.DELETE("/deleteDomainByID", controllers.DeleteDomainByID)
+		records.DELETE("/deleteDomain", controllers.DeleteDomainByID)
+		records.PUT("/updateRecord", controllers.UpdateRecord)
+	}
 
 	// PORT Variable
 	port := os.Getenv("PORT")
