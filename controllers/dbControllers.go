@@ -86,17 +86,18 @@ func CreateDomain(c *gin.Context) {
 		return
 	}
 
-	// We will only support one NS server
-
-	nsServer := models.Nameserver{
-		DomainID: domain.ID,
-		// Replace this when deplyed or take from env
-		NSName: "",
+	nsRecord := models.DNSRecord{
+		DomainID:   domain.ID,
+		RecordType: "NS",
+		RecordName: "@",
+		TTL:        3600,
+		// CHANGE THIS ON TIME OF DEPLOYMENT OR TAKE FROM ENV
+		RecordValue: "",
+		Priority:    nil,
 	}
 
-	if err := database.DB.Create(&nsServer).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create NS Record"})
-		return
+	if err := database.DB.Create(&nsRecord).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "Could not create NS Record"})
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Domain successfully created"})
@@ -134,6 +135,7 @@ func CreateRecord(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "Records created successfully"})
 }
 
+// CHECK THIS
 func UpdateRecordByID(c *gin.Context) {
 	domainId := c.Param("domainId")
 

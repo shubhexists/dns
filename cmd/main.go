@@ -27,11 +27,6 @@ func init() {
 		Log.Fatal("Error migrating SOARecord to new schema")
 	}
 
-	err = database.DB.AutoMigrate(&models.Nameserver{})
-	if err != nil {
-		Log.Fatal("Error migrating Nameserver to new schema")
-	}
-
 	err = database.DB.AutoMigrate(&models.Domain{})
 	if err != nil {
 		Log.Fatal("Error migrating Domain to new schema")

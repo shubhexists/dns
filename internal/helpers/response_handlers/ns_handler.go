@@ -28,6 +28,7 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 		}
 
 		var dnsRecord models.DNSRecord
+		// TODO: ADD IN README THAT WE WOULD SUPPORT ONLY 1 NS for each DEPLOYMENT
 		if err := database.DB.Where("domain_id = ? AND record_type = ?", domain.ID, "NS").First(&dnsRecord).Error; err != nil {
 			Log.Errorln("A record not found:", err)
 			return 0, 0, nil

@@ -35,10 +35,3 @@ type DNSRecord struct {
 	Priority    *int   `gorm:"default:null"`
 	Domain      Domain `gorm:"foreignKey:DomainID"`
 }
-
-type Nameserver struct {
-	gorm.Model
-	DomainID uint   `gorm:"not null;constraint:OnDelete:CASCADE"`
-	NSName   string `gorm:"size:255;not null"`
-	Domain   Domain `gorm:"foreignKey:DomainID"`
-}
