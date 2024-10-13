@@ -232,7 +232,7 @@ func DeleteDomainByID(c *gin.Context) {
 
 func GetRecordsByDomainID(c *gin.Context) {
 	Log.Println("Retrieving records for domain ID...")
-	domainIDParam := c.Param("domain_id")
+	domainIDParam := c.Query("domain_id")
 
 	domainID, err := strconv.ParseUint(domainIDParam, 10, 32)
 	if err != nil {

@@ -1,8 +1,6 @@
 package responsehandlers
 
 import (
-	"encoding/json"
-	"strconv"
 	"strings"
 
 	"github.com/shubhexists/dns/cache"
@@ -16,11 +14,18 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 
 	res, err := diceDB.Get(Qname)
 	if err != nil {
-		Log.Errorln("Error", err)
+		Log.Errorln("Error getting domain values:", err)
 		return 0, 0, nil
 	}
 
-	if res == nil {
+	var nsRecord cache.RecordData
+	var exists bool
+
+	if res != nil {
+		nsRecord, exists = res["NS"]
+	}
+
+	if !exists {
 		var domain models.Domain
 		if err := database.DB.Where("domain_name = ?", Qname).First(&domain).Error; err != nil {
 			Log.Errorln("Domain not found:", err)
@@ -30,41 +35,27 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 		var dnsRecord models.DNSRecord
 		// TODO: ADD IN README THAT WE WOULD SUPPORT ONLY 1 NS for each DEPLOYMENT
 		if err := database.DB.Where("domain_id = ? AND record_type = ?", domain.ID, "NS").First(&dnsRecord).Error; err != nil {
-			Log.Errorln("A record not found:", err)
+			Log.Errorln("NS record not found:", err)
 			return 0, 0, nil
 		}
 
-		cacheData := data{
-			Key:   Qname,
+		nsRecord = cache.RecordData{
 			Value: dnsRecord.RecordValue,
-			TTL:   strconv.Itoa(dnsRecord.TTL),
+			TTL:   dnsRecord.TTL,
 		}
 
-		cacheBytes, error := json.Marshal(cacheData)
-		if error != nil {
-			Log.Errorln("Unable to marshal cache data: ", error)
+		cacheData := map[string]cache.RecordData{
+			"NS": nsRecord,
+		}
+
+		err = diceDB.Set(Qname, cacheData)
+		if err != nil {
+			Log.Errorln("Unable to set cache data:", err)
 			return 0, 0, nil
 		}
-
-		diceDB.Set(Qname, string(cacheBytes))
-
-		res = cacheBytes
 	}
 
-	var resData data
-
-	if err := json.Unmarshal(res, &resData); err != nil {
-		Log.Errorln("Error parsing JSON:", err)
-		return 0, 0, nil
-	}
-
-	ttl, err := strconv.ParseUint(resData.TTL, 10, 32)
-	if err != nil {
-		Log.Errorln("Error converting to uint32:", err)
-		return 0, 0, nil
-	}
-
-	name_server := strings.Split(resData.Value, ".")
+	name_server := strings.Split(nsRecord.Value, ".")
 
 	var rdata []byte
 
@@ -77,5 +68,5 @@ func NSHandler(Qname string) (uint32, uint16, []byte) {
 
 	rdlength := uint16(len(rdata))
 
-	return uint32(ttl), rdlength, rdata
+	return uint32(nsRecord.TTL), rdlength, rdata
 }

@@ -147,8 +147,19 @@ func handleMXRecord(response []byte, offset int, question models.DNSQuestion) (i
 }
 
 func handleNSRecord(response []byte, offset int, question models.DNSQuestion) (int, error) {
-	// Later :D
-	return offset, ErrNotImplemented
+	qname := joinLabels(question.QName)
+	ttl, rdLength, nsvalue := responsehandlers.NSHandler(qname)
+
+	if nsvalue == nil {
+		return offset, ErrRecordNotFound
+	}
+
+	offset = writeResourceRecord(response, offset, question, models.QTYPE_NS, ttl, rdLength)
+	copy(response[offset:], nsvalue)
+	offset += len(nsvalue)
+
+	incrementAnswerCount(response)
+	return offset, nil
 }
 
 func handlePTRRecord(response []byte, offset int, question models.DNSQuestion) (int, error) {

@@ -1,21 +1,13 @@
 package responsehandlers
 
 import (
-	"encoding/json"
 	"net"
-	"strconv"
 
 	"github.com/shubhexists/dns/cache"
 	"github.com/shubhexists/dns/database"
 	. "github.com/shubhexists/dns/internal/logger"
 	"github.com/shubhexists/dns/models"
 )
-
-type Data struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-	TTL   string `json:"ttl"`
-}
 
 func AAAA_handler(QName string) (uint32, uint16, []byte) {
 	diceDB := cache.NewAPIClient()
@@ -26,11 +18,18 @@ func AAAA_handler(QName string) (uint32, uint16, []byte) {
 
 	res, err := diceDB.Get(QName)
 	if err != nil {
-		Log.Errorln("Error getting domain values")
+		Log.Errorln("Error getting domain values:", err)
 		return 0, 0, nil
 	}
 
-	if res == nil {
+	var aaaaRecord cache.RecordData
+	var exists bool
+
+	if res != nil {
+		aaaaRecord, exists = res["AAAA"]
+	}
+
+	if !exists {
 		var domain models.Domain
 		if err := database.DB.Where("domain_name = ?", QName).First(&domain).Error; err != nil {
 			Log.Errorln("Domain record not found:", err)
@@ -38,42 +37,28 @@ func AAAA_handler(QName string) (uint32, uint16, []byte) {
 		}
 
 		var record models.DNSRecord
-		if err := database.DB.Where("domain_id = ? AND record_type = ?", record.DomainID, "AAAA").First(&record).Error; err != nil {
+		if err := database.DB.Where("domain_id = ? AND record_type = ?", domain.ID, "AAAA").First(&record).Error; err != nil {
 			Log.Errorln("AAAA record not found:", err)
 			return 0, 0, nil
 		}
 
-		cacheData := data{
-			Key:   QName,
+		aaaaRecord = cache.RecordData{
 			Value: record.RecordValue,
-			TTL:   strconv.Itoa(record.TTL),
+			TTL:   record.TTL,
 		}
 
-		cacheBytes, error := json.Marshal(cacheData)
-		if error != nil {
-			Log.Errorln("Unable to marshal cache data: ", error)
+		cacheData := map[string]cache.RecordData{
+			"AAAA": aaaaRecord,
+		}
+
+		err = diceDB.Set(QName, cacheData)
+		if err != nil {
+			Log.Errorln("Unable to set cache data:", err)
 			return 0, 0, nil
 		}
-
-		diceDB.Set(QName, string(cacheBytes))
-
-		res = cacheBytes
 	}
 
-	var resData data
-
-	if err := json.Unmarshal(res, &resData); err != nil {
-		Log.Errorln("Error parsing JSON:", err)
-		return 0, 0, nil
-	}
-
-	ttl, err := strconv.ParseUint(resData.TTL, 10, 128)
-	if err != nil {
-		Log.Errorln("Error converting to uint32:", err)
-		return 0, 0, nil
-	}
-
-	ip := net.ParseIP(resData.Value)
+	ip := net.ParseIP(aaaaRecord.Value)
 	if ip == nil {
 		Log.Errorln("Invalid IP address")
 		return 0, 0, nil
@@ -84,5 +69,6 @@ func AAAA_handler(QName string) (uint32, uint16, []byte) {
 		Log.Errorln("Not a valid IPv6 address")
 		return 0, 0, nil
 	}
-	return uint32(ttl), 0x0006, ip
+
+	return uint32(aaaaRecord.TTL), 0x001C, ip
 }
